@@ -133,6 +133,8 @@ const strips = [
         characteristics : [l2_brightnessCharacteristic, l2_colorCharacteristic, l2_saturationCharacteristic, l2_onCharacteristic],
     }
 ];
+
+// Necessary execute: sudo apt-get install avahi-daemon if avahi isn't available on this platform
 // Publishing bridge
 const ifaces = require('macaddress').networkInterfaces();
 bridge.publish({
@@ -140,9 +142,9 @@ bridge.publish({
     pincode: "648-90-932",
     port: 51871,
     category: hap.Categories.BRIDGE,
+    setupID: 'Hi',
+    advertiser: 'avahi'
 });
-
-console.log('bridgeSetupId', bridge.setupID);
 
 // Exports
 
