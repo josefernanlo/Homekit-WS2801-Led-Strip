@@ -1,0 +1,34 @@
+{
+  "name": "homekit-ws2801-led-strip",
+  "version": "0.0.1",
+  "description": "A nodeJS server to controll over home-kit WS2801 led Strip",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/josefernanlo/Homekit-WS2801-Led-Strip.git"
+  },
+  "keywords": [
+    "homekit",
+    "WS2801",
+    "adressable",
+    "led",
+    "strip",
+    "siri",
+    "HAP",
+    "nodeJS"
+  ],
+  "dependencies": {
+    "hap-nodejs": "^0.11.0",
+    "macaddress": "^0.5.3",
+    "ws2801-pi": "^1.2.0"
+  },
+  "author": "José Fernández López",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/josefernanlo/Homekit-WS2801-Led-Strip/issues"
+  },
+  "homepage": "https://github.com/josefernanlo/Homekit-WS2801-Led-Strip#readme"
+}
