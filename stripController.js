@@ -1,5 +1,24 @@
 
-let stripsStatus = {};
+let stripsStatus = {
+    0: {
+        brightness: 0,
+        power: false,
+        color: 0,
+        saturation: 0
+    },
+    1: {
+        brightness: 0,
+        power: false,
+        color: 0,
+        saturation: 0
+    },
+    2: {
+        brightness: 0,
+        power: false,
+        color: 0,
+        saturation: 0
+    },
+};
 
 const setPower = (ledStripId, power) => {
     console.log(`power of ${ledStripId} setted at ${power}`);
@@ -11,7 +30,7 @@ const getPower = (ledStripId) => {
 }
 
 const setBrigthness = (ledStripId, brightness) => {
-    console.log(`power of ${ledStripId} setted at ${brightness}`);
+    console.log(`brightness of ${ledStripId} setted at ${brightness}`);
     stripsStatus[ledStripId].brightness = brightness;
 } 
 
@@ -20,7 +39,7 @@ const getBrigthness = (ledStripId) => {
 }
 
 const setSaturation = (ledStripId, saturation) => {
-    console.log(`power of ${ledStripId} setted at ${saturation}`);
+    console.log(`saturation of ${ledStripId} setted at ${saturation}`);
     stripsStatus[ledStripId].saturation = saturation;
 }
 
@@ -29,7 +48,7 @@ const getSaturation = (ledStripId) => {
 }
 
 const setColor = (ledStripId, color) => {
-    console.log(`power of ${ledStripId} setted at ${color}`);
+    console.log(`color of ${ledStripId} setted at ${color}`);
     stripsStatus[ledStripId].color = color;
 }
 
