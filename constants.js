@@ -12,21 +12,21 @@ const bridge = new Bridge('My Bridge', hap.uuid.generate('My Bridge'));
 
 // 1st Accessory
 const lightService0 = new Service.Lightbulb("");
-const accessoryUuid0 = hap.uuid.generate("light");
+const accessoryUuid0 = hap.uuid.generate("light0");
 const accessory0 = new Accessory("WS2801-0", accessoryUuid0);
 accessory0.addService(lightService0);
 bridge.addBridgedAccessory(accessory0);
 
 // 2nd Accesory
 const lightService1 = new Service.Lightbulb("");
-const accessoryUuid1 = hap.uuid.generate("light");
+const accessoryUuid1 = hap.uuid.generate("light1");
 const accessory1 = new Accessory("WS2801-1", accessoryUuid1);
 accessory1.addService(lightService1);
 bridge.addBridgedAccessory(accessory1);
 
 // 3th Accessory
 const lightService2 = new Service.Lightbulb("");
-const accessoryUuid2 = hap.uuid.generate("light");
+const accessoryUuid2 = hap.uuid.generate("light2");
 const accessory2 = new Accessory("WS2801-2", accessoryUuid2);
 accessory2.addService(lightService2);
 bridge.addBridgedAccessory(accessory2);
