@@ -75,11 +75,13 @@ const updatedBrightness = (leds, brightness) => {
 }
 
 const updateColor = (leds, color) => {
-    console.log(color.r, color.g, color.b)
-    leds.map(led => ledController.setLed(led, color))
+    const colorRGB = HSLToRGB(color, stripsStatus[ledStripId].saturation, 100);
+    console.log(colorRGB.red, colorRGB.green, colorRGB.blue)
+    leds.map(led => ledController.setLed(led, colorRGB))
 }
 
 const doAction = async (characteristic, leds, value) => {
+    console.log(characteristic, leds, value)
     return new Promise((resolve, reject) => {
         switch (characteristic) {
             case 'power':
@@ -133,12 +135,8 @@ const getSaturation = (ledStripId) => {
 const setColor = (ledStripId, color) => {
     if (isAvailable) {
         return new Promise((resolve, reject) => {
-            const colorRGB = HSLToRGB(color, stripsStatus[ledStripId].saturation, 100);
             stripsStatus[ledStripId].color = color;
-
-
-
-            animateSection(ledStripId, 'color', colorRGB);
+            animateSection(ledStripId, 'color', color);
             resolve('Done!');
         });
     } else {
@@ -162,34 +160,14 @@ const getColor = (ledStripId) => {
  * @return  {Array}           The RGB representation
  */
 const HSLToRGB = (h, s, l) => {
-    // Must be fractions of 1
     s /= 100;
     l /= 100;
-
-    let c = (1 - Math.abs(2 * l - 1)) * s,
-        x = c * (1 - Math.abs((h / 60) % 2 - 1)),
-        m = l - c / 2,
-        red = 0,
-        green = 0,
-        blue = 0; if (0 <= h && h < 60) {
-            red = c; green = x; blue = 0;
-        } else if (60 <= h && h < 120) {
-            red = x; green = c; blue = 0;
-        } else if (120 <= h && h < 180) {
-            red = 0; green = c; blue = x;
-        } else if (180 <= h && h < 240) {
-            red = 0; green = x; blue = c;
-        } else if (240 <= h && h < 300) {
-            red = x; green = 0; blue = c;
-        } else if (300 <= h && h < 360) {
-            red = c; green = 0; blue = x;
-        }
-    red = Math.round((red + m) * 255);
-    green = Math.round((green + m) * 255);
-    blue = Math.round((blue + m) * 255);
-
-    return { red, green, blue };
-}
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n =>
+      l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return {red: Math.round(255 * f(0)), green: Math.round(255 * f(8)), blue: Math.round(255 * f(4))};
+  };
 
 module.exports = {
     setPower,
