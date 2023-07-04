@@ -54,7 +54,7 @@ const animateSection = async (ledStripId, characteristic, value) => {
 
     for (i = 0; i < numberOfIterations; i++) {
         const ledsToUpdate = sections.reduce((acc, section) => [...acc, section.to + i], []);
-        doAction(characteristic, ledsToUpdate, value);
+        doAction(characteristic, ledsToUpdate, ledStripId ,value);
         await ledController.show();
     }
 
@@ -74,13 +74,13 @@ const updatedBrightness = (leds, brightness) => {
 
 }
 
-const updateColor = (leds, color) => {
+const updateColor = (leds, ledStripId, color) => {
     const colorRGB = HSLToRGB(color, stripsStatus[ledStripId].saturation, 100);
     console.log(colorRGB.red, colorRGB.green, colorRGB.blue)
     leds.map(led => ledController.setLed(led, colorRGB))
 }
 
-const doAction = async (characteristic, leds, value) => {
+const doAction = async (characteristic, leds, ledStripId, value) => {
     console.log(characteristic, leds, value)
     return new Promise((resolve, reject) => {
         switch (characteristic) {
@@ -91,7 +91,7 @@ const doAction = async (characteristic, leds, value) => {
                 updatedBrightness(leds, value)
                 break;
             case 'color':
-                 updateColor(leds, value)
+                 updateColor(leds, ledStripId, value)
                 break;
         }
         resolve('Setted Led!');
