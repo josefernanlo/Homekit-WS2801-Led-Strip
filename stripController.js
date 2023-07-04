@@ -1,7 +1,7 @@
 // Librerías requeridas
 const LedController = require('ws2801-pi').default;
 const Constant = require('./constants.js');
-const { promise } = require('./promiseController.js');
+const ManegerPromise = require('./promiseController.js');
 
 // Configuración e inicio de la librería LedController
 const config = {
@@ -43,7 +43,7 @@ const queue = [];
  * La función devuelve true si se puede ejecutar una funcion o false si el dispositivo está ocupado.
  * @returns Boolean
  */
-const isAvailable = () => status === false ? status : promise(status).isFulfiled ;
+const isAvailable = () => status === false ? status : ManegerPromise.promise(status).isFulfiled ;
 
 
 const getSections = (ledStripId) => Constant.strips[ledStripId].sections

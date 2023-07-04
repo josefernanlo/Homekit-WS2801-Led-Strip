@@ -1,4 +1,4 @@
-export function promise(promise) {
+function promise(promise) {
     if (promise.isFulfiled) return promise
 
     // Estados
@@ -23,4 +23,8 @@ export function promise(promise) {
     result.isRejected = () => isRejected;
 
     return result;
+}
+
+module.exports = {
+    promise
 }
