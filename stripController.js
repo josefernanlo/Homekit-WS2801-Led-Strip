@@ -1,16 +1,20 @@
+// Librerías requeridas
 const LedController = require('ws2801-pi').default;
 const Constant = require('./constants.js');
+const { promise } = require('./promiseController.js');
 
+// Configuración e inicio de la librería LedController
 const config = {
-    debug : false,
+    debug: false,
     automaticRendering: false,
-    spiClockSpeed : 1064959.92,
+    spiClockSpeed: 1064959.92,
 };
 const ledController = new LedController('900', config);
 
-const wait = async (ms) =>  new Promise((resolve) => {setTimeout(resolve, ms); });
+// Estado de JS (Para poder invocar o no acciones)
+let status = false;
 
-
+// Estados generales
 let stripsStatus = {
     0: {
         brightness: 0,
@@ -32,33 +36,70 @@ let stripsStatus = {
     },
 };
 
-const animateSection = async (section, characteristic, value) => {
-    const {from, to, direction} = section;
-    switch (characteristic) {
-        case 'power':
-            for (let i = from; i < to ;i+=1) {
-                ledController.setLed(i, value === true ? {red: 255, green: 255, blue: 255} :  {red: 0, green: 0, blue: 0})
-                ledController.show();
-                await wait(16.667);
-            }
-            break;
-        case 'brightness':
-            ledController.setBrightness(value);
-            ledController.show();
-            break;
-        case 'hue':
-        case 'saturation':
-        default:
-            ledController.fillLeds(HSVtoRGB(value, 100, 100));
-            ledController.show();
-            break;
+// Cola de acciones
+const queue = [];
+
+/**
+ * La función devuelve true si se puede ejecutar una funcion o false si el dispositivo está ocupado.
+ * @returns Boolean
+ */
+const isAvailable = () => status === false ? status : promise(status).isFulfiled ;
+
+
+const getSections = (ledStripId) => Constant.strips[ledStripId].sections
+
+const animateSection = async (ledStripId, characteristic, value) => {
+    const sections = getSections(ledStripId);
+    const numberOfIterations = sections.map( (section) => section.to - section.from).sort((a, b) => b-a)[0];
+
+    for (i = 0; i < numberOfIterations ;i++){
+        const ledsToUpdate = sections.map( (section) => section.to + i);
+        doAction(characteristic, ledsToUpdate, value);
+        await ledController.show();
+    }
+
+}
+
+const updatePower = (leds, power) => {
+    if (power) {
+        // power = true
+        leds.map(led => ledController.setLed(led, {red: 255, green: 255, blue: 255}))
+    } else {
+        // power = false
+        leds.map(led => ledController.setLed(led, {red: 0, green: 0, blue: 0}))
     }
 }
 
+const updatedBrightness = (leds, brightness) => {
+
+}
+
+const updateColor = (leds, color) => {
+    leds.map(led => ledController.setLed(led, color))
+}
+
+const doAction = async (characteristic, leds, value) => {
+    const promiseResult = new Promise();
+    const callbacks = {
+        'power': updatePower,
+        'brightness': updatedBrightness,
+        'color': updateColor,
+    }
+
+    callbacks[characteristic]?.bind(this, leds, value);
+    return promiseResult.resolve('Setted Led!');
+}
+
 const setPower = (ledStripId, power) => {
-    console.log(`power of ${ledStripId} setted at ${power}`);
-    Constant.strips[ledStripId].sections.map(section => animateSection(section, 'power', power))
-    stripsStatus[ledStripId].power = power;
+    if(isAvailable) {
+        status = new Promise();
+        console.log(`power of ${ledStripId} setted at ${power}`);
+        animateSection(ledStripId, 'power', power);
+        stripsStatus[ledStripId].power = power;
+        status.resolve('Done!');
+    } else {
+        queue.push({})
+    }
 }
 
 const getPower = (ledStripId) => {
@@ -67,9 +108,9 @@ const getPower = (ledStripId) => {
 
 const setBrigthness = (ledStripId, brightness) => {
     console.log(`brightness of ${ledStripId} setted at ${brightness}`);
-    Constant.strips[ledStripId].sections.map(section => animateSection(section, 'brightness', brightness));
+    animateSection(ledStripId, 'brightness', brightness);
     stripsStatus[ledStripId].brightness = brightness;
-} 
+}
 
 const getBrigthness = (ledStripId) => {
     return stripsStatus[ledStripId].brightness;
@@ -77,7 +118,6 @@ const getBrigthness = (ledStripId) => {
 
 const setSaturation = (ledStripId, saturation) => {
     console.log(`saturation of ${ledStripId} setted at ${saturation}`);
-    Constant.strips[ledStripId].sections.map(section => animateSection(section, 'saturation', stripsStatus[ledStripId].color));
     stripsStatus[ledStripId].saturation = saturation;
 }
 
@@ -86,42 +126,65 @@ const getSaturation = (ledStripId) => {
 }
 
 const setColor = (ledStripId, color) => {
-    console.log(`color of ${ledStripId} setted at ${color}`);
-    Constant.strips[ledStripId].sections.map(section => animateSection(section, 'hue', color));
-    stripsStatus[ledStripId].color = color;
+    if(isAvailable) {
+        status = new Promise();
+        console.log(`color of ${ledStripId} setted at ${color}`);
+        const colorRGB = HSLToRGB(color ,stripsStatus[ledStripId].saturation);
+        stripsStatus[ledStripId].color = color;
+        animateSection(ledStripId, 'color', colorRGB); 
+        status.resolve('Done!');
+    } else {
+        queue.push({});
+    }
 }
 
 const getColor = (ledStripId) => {
     return stripsStatus[ledStripId].color;
 }
 
-const HSVtoRGB = (h, s, v = 100) => {
-    var r, g, b, i, f, p, q, t;
-    if (arguments.length === 1) {
-        s = h.s, v = h.v, h = h.h;
+/**
+ * Converts an HSL color value to RGB. Conversion formula
+ * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+ * Assumes h, s, and l are contained in the set [0, 1] and
+ * returns r, g, and b in the set [0, 255].
+ *
+ * @param   {number}  h       The hue
+ * @param   {number}  s       The saturation
+ * @param   {number}  l       The lightness
+ * @return  {Array}           The RGB representation
+ */
+const HSLToRGB = (h,s,l) => {
+    // Must be fractions of 1
+    s /= 100;
+    l /= 100;
+  
+    let c = (1 - Math.abs(2 * l - 1)) * s,
+        x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+        m = l - c/2,
+        red = 0,
+        green = 0,
+        blue = 0; if (0 <= h && h < 60) {
+      red = c; green = x; blue = 0;  
+    } else if (60 <= h && h < 120) {
+      red = x; green = c; blue = 0;
+    } else if (120 <= h && h < 180) {
+      red = 0; green = c; blue = x;
+    } else if (180 <= h && h < 240) {
+      red = 0; green = x; blue = c;
+    } else if (240 <= h && h < 300) {
+      red = x; green = 0; blue = c;
+    } else if (300 <= h && h < 360) {
+      red = c; green = 0; blue = x;
     }
-    i = Math.floor(h * 6);
-    f = h * 6 - i;
-    p = v * (1 - s);
-    q = v * (1 - f * s);
-    t = v * (1 - (1 - f) * s);
-    switch (i % 6) {
-        case 0: r = v, g = t, b = p; break;
-        case 1: r = q, g = v, b = p; break;
-        case 2: r = p, g = v, b = t; break;
-        case 3: r = p, g = q, b = v; break;
-        case 4: r = t, g = p, b = v; break;
-        case 5: r = v, g = p, b = q; break;
-    }
-    return {
-        red: Math.round(r * 255),
-        green: Math.round(g * 255),
-        blue: Math.round(b * 255)
-    };
-}
+    red = Math.round((red + m) * 255);
+    green = Math.round((green + m) * 255);
+    blue = Math.round((blue + m) * 255);
+  
+    return {red, green, blue};
+  }
 
 module.exports = {
-    setPower, 
+    setPower,
     getPower,
     setBrigthness,
     getBrigthness,

@@ -6,7 +6,7 @@ const Controller = require('./stripController.js');
 // { CharacteristicEventTypes, strips} from 
 //* CHARACTERISTICS *//
 
-Constant.strips.map(strip => {
+Constant.strips.forEach(strip => {
     strip.characteristics.map((characteristic, index) => {
         switch (index) {
             case 0:
