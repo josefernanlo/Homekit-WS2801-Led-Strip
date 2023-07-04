@@ -55,7 +55,6 @@ const animateSection = async (ledStripId, characteristic, value) => {
     for (i = 0; i < numberOfIterations; i++) {
         const ledsToUpdate = sections.reduce((acc, section) => [...acc, section.to + i], []);
         doAction(characteristic, ledsToUpdate, value);
-        console.log(`Llego aqui characteristic ${characteristic}, ledsToUpdate: ${ledsToUpdate}, value: ${value}`)
         await ledController.show();
     }
 
@@ -76,6 +75,7 @@ const updatedBrightness = (leds, brightness) => {
 }
 
 const updateColor = (leds, color) => {
+    console.log(color.r, color.g, color.b)
     leds.map(led => ledController.setLed(led, color))
 }
 
@@ -89,7 +89,7 @@ const doAction = async (characteristic, leds, value) => {
                 updatedBrightness(leds, value)
                 break;
             case 'color':
-                updateColor(leds, value)
+                 updateColor(leds, value)
                 break;
         }
         resolve('Setted Led!');
@@ -99,7 +99,6 @@ const doAction = async (characteristic, leds, value) => {
 const setPower = (ledStripId, power) => {
     if (isAvailable) {
         return new Promise((resolve, reject) => {
-            console.log(`power of ${ledStripId} setted at ${power}`);
             animateSection(ledStripId, 'power', power);
             stripsStatus[ledStripId].power = power;
             resolve('Done!');
@@ -114,7 +113,6 @@ const getPower = (ledStripId) => {
 }
 
 const setBrigthness = (ledStripId, brightness) => {
-    console.log(`brightness of ${ledStripId} setted at ${brightness}`);
     animateSection(ledStripId, 'brightness', brightness);
     stripsStatus[ledStripId].brightness = brightness;
 }
@@ -135,9 +133,11 @@ const getSaturation = (ledStripId) => {
 const setColor = (ledStripId, color) => {
     if (isAvailable) {
         return new Promise((resolve, reject) => {
-            console.log(`color of ${ledStripId} setted at ${color}`);
-            const colorRGB = HSLToRGB(color, stripsStatus[ledStripId].saturation);
+            const colorRGB = HSLToRGB(color, stripsStatus[ledStripId].saturation, 100);
             stripsStatus[ledStripId].color = color;
+
+
+
             animateSection(ledStripId, 'color', colorRGB);
             resolve('Done!');
         });
