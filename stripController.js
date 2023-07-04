@@ -79,24 +79,26 @@ const updateColor = (leds, color) => {
 }
 
 const doAction = async (characteristic, leds, value) => {
-    const promiseResult = new Promise();
-    const callbacks = {
-        'power': updatePower,
-        'brightness': updatedBrightness,
-        'color': updateColor,
-    }
-
-    callbacks[characteristic]?.bind(this, leds, value);
-    return promiseResult.resolve('Setted Led!');
+    return new Promise((resolve, reject) => {
+        const callbacks = {
+            'power': updatePower,
+            'brightness': updatedBrightness,
+            'color': updateColor,
+        }
+    
+        callbacks[characteristic]?.bind(this, leds, value);
+        resolve('Setted Led!');
+    });
 }
 
 const setPower = (ledStripId, power) => {
     if(isAvailable) {
-        status = new Promise();
-        console.log(`power of ${ledStripId} setted at ${power}`);
-        animateSection(ledStripId, 'power', power);
-        stripsStatus[ledStripId].power = power;
-        status.resolve('Done!');
+        return new Promise((resolve, reject) => {
+            console.log(`power of ${ledStripId} setted at ${power}`);
+            animateSection(ledStripId, 'power', power);
+            stripsStatus[ledStripId].power = power;
+            resolve('Done!');
+        });
     } else {
         queue.push({})
     }
@@ -127,12 +129,13 @@ const getSaturation = (ledStripId) => {
 
 const setColor = (ledStripId, color) => {
     if(isAvailable) {
-        status = new Promise();
-        console.log(`color of ${ledStripId} setted at ${color}`);
-        const colorRGB = HSLToRGB(color ,stripsStatus[ledStripId].saturation);
-        stripsStatus[ledStripId].color = color;
-        animateSection(ledStripId, 'color', colorRGB); 
-        status.resolve('Done!');
+        return new Promise((resolve, reject) => {
+            console.log(`color of ${ledStripId} setted at ${color}`);
+            const colorRGB = HSLToRGB(color ,stripsStatus[ledStripId].saturation);
+            stripsStatus[ledStripId].color = color;
+            animateSection(ledStripId, 'color', colorRGB); 
+            resolve('Done!');
+        });
     } else {
         queue.push({});
     }
