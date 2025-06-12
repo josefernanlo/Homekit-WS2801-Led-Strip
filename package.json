@@ -23,7 +23,7 @@
     "hap-nodejs": "^0.11.0",
     "macaddress": "^0.5.3",
     "ws2801-pi": "^1.2.0",
-    "rpi-ws2801": "^1.1.1"
+    "rpi-ws2801": "^0.0.4"
   },
   "author": "José Fernández López",
   "license": "ISC",
